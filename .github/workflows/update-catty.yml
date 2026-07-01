@@ -95,12 +95,12 @@ jobs:
 
       - name: Commit formula
         run: |
-          if git diff --quiet -- Formula/catty.rb; then
+          git add Formula/catty.rb
+          if git diff --cached --quiet -- Formula/catty.rb; then
             echo "Formula already up to date."
             exit 0
           fi
           git config user.name "buapebot"
           git config user.email "119761697+buapebot@users.noreply.github.com"
-          git add Formula/catty.rb
           git commit -m "chore: update catty to ${{ steps.release.outputs.tag }}"
           git push
