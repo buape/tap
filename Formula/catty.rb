@@ -21,6 +21,10 @@ class Catty < Formula
       url "https://github.com/buape/catty/releases/download/v0.1.0/catty-0.1.0-linux-amd64.tar.gz"
       sha256 "0afa17bb9f1c200db87b1b5d264b19e23122f4c8d285615aa10487f821f881de"
     end
+
+    on_arm do
+      disable! date: "2026-07-01", because: "catty does not provide Linux ARM builds"
+    end
   end
 
   def install

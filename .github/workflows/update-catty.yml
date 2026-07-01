@@ -75,6 +75,10 @@ jobs:
                 url "${linux_amd_url}"
                 sha256 "${linux_amd_sha}"
               end
+
+              on_arm do
+                disable! date: "$(date +%F)", because: "catty does not provide Linux ARM builds"
+              end
             end
 
             def install

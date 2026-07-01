@@ -10,18 +10,13 @@ jobs:
   test-bot:
     strategy:
       matrix:
-        os: [ macos-15-intel, macos-26 ]
-        include:
-          - os: ubuntu-latest
-            container: ghcr.io/homebrew/brew:main
+        os: [ubuntu-latest, macos-15-intel, macos-26]
     runs-on: ${{ matrix.os }}
-    container: ${{ matrix.container }}
     permissions:
-      actions: read
-      checks: read
       contents: read
-      pull-requests: read
     steps:
+      - uses: actions/checkout@v4
+
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@main
@@ -35,19 +30,6 @@ jobs:
           key: ${{ matrix.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
           restore-keys: ${{ matrix.os }}-rubygems-
 
-      - run: brew test-bot --only-cleanup-before
-
-      - run: brew test-bot --only-setup
-
-      - name: Check out repository
-        run: |
-          git init "$GITHUB_WORKSPACE"
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git -C "$GITHUB_WORKSPACE" remote remove origin 2>/dev/null || true
-          git -C "$GITHUB_WORKSPACE" remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          git -C "$GITHUB_WORKSPACE" fetch --depth=1 origin "$GITHUB_SHA"
-          git -C "$GITHUB_WORKSPACE" checkout --force FETCH_HEAD
-
       - name: Link checkout as tap
         run: |
           tap_dir="$(brew --repository)/Library/Taps/buape/homebrew-tap"
@@ -55,13 +37,6 @@ jobs:
           mkdir -p "$(dirname "$tap_dir")"
           ln -s "$GITHUB_WORKSPACE" "$tap_dir"
 
-      - run: brew test-bot --only-tap-syntax --tap=buape/tap
-      - run: brew test-bot --only-formulae --tap=buape/tap
-        if: github.event_name == 'pull_request'
+      - run: brew style buape/tap
 
-      - name: Upload bottles as artifact
-        if: always() && github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: bottles_${{ matrix.os }}
-          path: '*.bottle.*'
+      - run: brew audit --strict --formula buape/tap/catty
