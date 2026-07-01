@@ -35,16 +35,16 @@ jobs:
           key: ${{ matrix.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
           restore-keys: ${{ matrix.os }}-rubygems-
 
+      - run: brew test-bot --only-cleanup-before
+
+      - run: brew test-bot --only-setup
+
       - name: Link checkout as tap
         run: |
           tap_dir="$(brew --repository)/Library/Taps/buape/homebrew-tap"
           rm -rf "$tap_dir"
           mkdir -p "$(dirname "$tap_dir")"
           ln -s "$GITHUB_WORKSPACE" "$tap_dir"
-
-      - run: brew test-bot --only-cleanup-before
-
-      - run: brew test-bot --only-setup
 
       - run: brew test-bot --only-tap-syntax --tap=buape/tap
       - run: brew test-bot --only-formulae --tap=buape/tap
