@@ -1,0 +1,99 @@
+name: update catty formula
+
+on:
+  repository_dispatch:
+    types:
+      - catty_release
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Catty release tag, e.g. v0.1.0
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  update-catty:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set release values
+        id: release
+        run: |
+          TAG="${{ github.event.client_payload.tag || inputs.tag }}"
+          REPO="${{ github.event.client_payload.repo || 'buape/catty' }}"
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "repo=$REPO" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Generate formula
+        env:
+          REPO: ${{ steps.release.outputs.repo }}
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          base="https://github.com/${REPO}/releases/download/${TAG}"
+          darwin_arm_url="${base}/catty-${VERSION}-darwin-arm64.tar.gz"
+          darwin_amd_url="${base}/catty-${VERSION}-darwin-amd64.tar.gz"
+          linux_amd_url="${base}/catty-${VERSION}-linux-amd64.tar.gz"
+
+          darwin_arm_sha="$(curl -fsSL "$darwin_arm_url" | shasum -a 256 | cut -d ' ' -f 1)"
+          darwin_amd_sha="$(curl -fsSL "$darwin_amd_url" | shasum -a 256 | cut -d ' ' -f 1)"
+          linux_amd_sha="$(curl -fsSL "$linux_amd_url" | shasum -a 256 | cut -d ' ' -f 1)"
+
+          mkdir -p Formula
+          cat > Formula/catty.rb <<EOF
+          class Catty < Formula
+            desc "Personal assistant agent harness for Discord"
+            homepage "https://github.com/${REPO}"
+            version "${VERSION}"
+            license "MIT"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "${darwin_arm_url}"
+                sha256 "${darwin_arm_sha}"
+              else
+                url "${darwin_amd_url}"
+                sha256 "${darwin_amd_sha}"
+              end
+            end
+
+            on_linux do
+              url "${linux_amd_url}"
+              sha256 "${linux_amd_sha}"
+            end
+
+            def install
+              bin.install "catty"
+            end
+
+            test do
+              assert_path_exists bin/"catty"
+            end
+          end
+          EOF
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: brew audit --strict --formula Formula/catty.rb
+
+      - name: Commit formula
+        run: |
+          if git diff --quiet -- Formula/catty.rb; then
+            echo "Formula already up to date."
+            exit 0
+          fi
+          git config user.name "buapebot"
+          git config user.email "119761697+buapebot@users.noreply.github.com"
+          git add Formula/catty.rb
+          git commit -m "chore: update catty to ${{ steps.release.outputs.tag }}"
+          git push
