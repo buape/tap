@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set release values
         id: release
@@ -94,6 +96,8 @@ jobs:
       - run: brew audit --strict --formula buape/tap/catty
 
       - name: Commit formula
+        env:
+          BUAPEBOT_PAT: ${{ secrets.BUAPEBOT_PAT }}
         run: |
           git add Formula/catty.rb
           if git diff --cached --quiet -- Formula/catty.rb; then
@@ -103,4 +107,4 @@ jobs:
           git config user.name "buapebot"
           git config user.email "119761697+buapebot@users.noreply.github.com"
           git commit -m "chore: update catty to ${{ steps.release.outputs.tag }}"
-          git push
+          git push "https://x-access-token:${BUAPEBOT_PAT}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}"
