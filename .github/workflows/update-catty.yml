@@ -27,9 +27,11 @@ jobs:
           TAG="${{ github.event.client_payload.tag || inputs.tag }}"
           REPO="${{ github.event.client_payload.repo || 'buape/catty' }}"
           VERSION="${TAG#v}"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "repo=$REPO" >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          {
+            echo "tag=$TAG"
+            echo "repo=$REPO"
+            echo "version=$VERSION"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Generate formula
         env:
@@ -57,18 +59,22 @@ jobs:
             license "MIT"
 
             on_macos do
-              if Hardware::CPU.arm?
+              on_arm do
                 url "${darwin_arm_url}"
                 sha256 "${darwin_arm_sha}"
-              else
+              end
+
+              on_intel do
                 url "${darwin_amd_url}"
                 sha256 "${darwin_amd_sha}"
               end
             end
 
             on_linux do
-              url "${linux_amd_url}"
-              sha256 "${linux_amd_sha}"
+              on_intel do
+                url "${linux_amd_url}"
+                sha256 "${linux_amd_sha}"
+              end
             end
 
             def install
