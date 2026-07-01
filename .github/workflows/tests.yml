@@ -22,6 +22,8 @@ jobs:
       contents: read
       pull-requests: read
     steps:
+      - uses: actions/checkout@v4
+
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@main
@@ -35,12 +37,19 @@ jobs:
           key: ${{ matrix.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
           restore-keys: ${{ matrix.os }}-rubygems-
 
+      - name: Link checkout as tap
+        run: |
+          tap_dir="$(brew --repository)/Library/Taps/buape/homebrew-tap"
+          rm -rf "$tap_dir"
+          mkdir -p "$(dirname "$tap_dir")"
+          ln -s "$GITHUB_WORKSPACE" "$tap_dir"
+
       - run: brew test-bot --only-cleanup-before
 
       - run: brew test-bot --only-setup
 
-      - run: brew test-bot --only-tap-syntax
-      - run: brew test-bot --only-formulae
+      - run: brew test-bot --only-tap-syntax --tap=buape/tap
+      - run: brew test-bot --only-formulae --tap=buape/tap
         if: github.event_name == 'pull_request'
 
       - name: Upload bottles as artifact

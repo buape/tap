@@ -84,7 +84,14 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: brew audit --strict --formula Formula/catty.rb
+      - name: Link checkout as tap
+        run: |
+          tap_dir="$(brew --repository)/Library/Taps/buape/homebrew-tap"
+          rm -rf "$tap_dir"
+          mkdir -p "$(dirname "$tap_dir")"
+          ln -s "$GITHUB_WORKSPACE" "$tap_dir"
+
+      - run: brew audit --strict --formula buape/tap/catty
 
       - name: Commit formula
         run: |
