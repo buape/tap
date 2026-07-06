@@ -1,29 +1,29 @@
 class Catty < Formula
   desc "Personal assistant agent harness for Discord"
   homepage "https://github.com/buape/catty"
-  version "0.1.0"
+  version "0.1.1"
   license "MIT"
 
   on_macos do
     on_arm do
-      url "https://github.com/buape/catty/releases/download/v0.1.0/catty-0.1.0-darwin-arm64.tar.gz"
-      sha256 "63b1699927b48d9586b994614f7499c5ffc66042cc10df0daa9ebc4c8e9710b2"
+      url "https://github.com/buape/catty/releases/download/v0.1.1/catty-0.1.1-darwin-arm64.tar.gz"
+      sha256 "5a1fbc5f6d4d163debced214536e4575df3580262ad94dc338c9dfae33ec9073"
     end
 
     on_intel do
-      url "https://github.com/buape/catty/releases/download/v0.1.0/catty-0.1.0-darwin-amd64.tar.gz"
-      sha256 "20189f90f1cdbf688aa6ddb36d9645ffc79ea3177bf617b4c469031b676b09b5"
+      url "https://github.com/buape/catty/releases/download/v0.1.1/catty-0.1.1-darwin-amd64.tar.gz"
+      sha256 "d6a49b1809db4d846efa4d71c1caea34b550999fe85c6952bb4ce02373c3b2e6"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/buape/catty/releases/download/v0.1.0/catty-0.1.0-linux-amd64.tar.gz"
-      sha256 "0afa17bb9f1c200db87b1b5d264b19e23122f4c8d285615aa10487f821f881de"
+      url "https://github.com/buape/catty/releases/download/v0.1.1/catty-0.1.1-linux-amd64.tar.gz"
+      sha256 "2e0dd46926fed7c4cadf4687dc35ecc2e75c8858458b6569a32a34a7976bf9e7"
     end
 
     on_arm do
-      disable! date: "2026-07-01", because: "catty does not provide Linux ARM builds"
+      disable! date: "2026-07-06", because: "catty does not provide Linux ARM builds"
     end
   end
 
